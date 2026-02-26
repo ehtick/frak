@@ -60,7 +60,9 @@ void main(void) {
 	vec3 B = cross(N, T) * worldTangent.w;
 
 	mat3 TBN = mat3(T, -B, N);
-	N = TBN * normalize(texture(normal0, normalUV()).xyz * 2.0 - 1.0);
+	vec3 n = texture(normal0, normalUV()).xyz * 2.0 - 1.0;
+	n *= vec3(normalScale, normalScale, 1.0);
+	N = TBN * normalize(n);
 #endif
 #endif
 

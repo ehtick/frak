@@ -1,31 +1,31 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import TextureDescriptor from 'scene/descriptors/TextureDescriptor';
-import Sampler from 'rendering/shaders/Sampler';
-import UniformMat3 from 'rendering/shaders/UniformMat3';
-import Material, { RendererType, TransparencyType } from 'rendering/materials/Material';
-import UniformColor from 'rendering/shaders/UniformColor';
-import UniformFloat from 'rendering/shaders/UniformFloat';
-import Mesh from 'scene/geometry/Mesh';
-import Submesh from 'scene/geometry/Submesh';
-import Node from 'scene/Node';
-import MeshRendererComponent from 'scene/components/MeshRendererComponent';
-import MeshComponent from 'scene/components/MeshComponent';
-import MeshCollider from 'scene/components/MeshCollider';
-import Color from 'rendering/Color';
-import FRAK from 'Helpers';
-import DirectionalLight from '../scene/lights/DirectionalLight';
-import init, { generateTangents } from '../../lib/mikktspace';
-import type { TextureOptions } from '../rendering/materials/BaseTexture';
-import type TexturesManager from './TexturesManager';
-import type ShadersManager from './ShadersManager';
-import type ModelDescriptor from '../scene/descriptors/ModelDescriptor';
+import TextureDescriptor from "scene/descriptors/TextureDescriptor";
+import Sampler from "rendering/shaders/Sampler";
+import UniformMat3 from "rendering/shaders/UniformMat3";
+import Material, { RendererType, TransparencyType } from "rendering/materials/Material";
+import UniformColor from "rendering/shaders/UniformColor";
+import UniformFloat from "rendering/shaders/UniformFloat";
+import Mesh from "scene/geometry/Mesh";
+import Submesh from "scene/geometry/Submesh";
+import Node from "scene/Node";
+import MeshRendererComponent from "scene/components/MeshRendererComponent";
+import MeshComponent from "scene/components/MeshComponent";
+import MeshCollider from "scene/components/MeshCollider";
+import Color from "rendering/Color";
+import FRAK from "Helpers";
+import DirectionalLight from "../scene/lights/DirectionalLight";
+import init, { generateTangents } from "../../lib/mikktspace";
+import type { TextureOptions } from "../rendering/materials/BaseTexture";
+import type TexturesManager from "./TexturesManager";
+import type ShadersManager from "./ShadersManager";
+import type ModelDescriptor from "../scene/descriptors/ModelDescriptor";
 
 function defaultSampler(): TextureOptions {
 	return {
 		flipY: false,
 		noConvertColorSpace: true,
-		wrapS: 'repeat',
-		wrapT: 'repeat',
+		wrapS: "repeat",
+		wrapT: "repeat",
 	};
 }
 
@@ -57,8 +57,8 @@ class ModelLoaderGLTF {
 		this.submeshes = [];
 
 		this.textureUniformMap = {
-			texturesDiffuse: 'diffuse',
-			texturesNormals: 'normal',
+			texturesDiffuse: "diffuse",
+			texturesNormals: "normal",
 		};
 
 		this.binaryBuffer = false;
@@ -94,7 +94,7 @@ class ModelLoaderGLTF {
 		if (
 			FRAK.isEmptyObject(parsedData) ||
 			FRAK.isEmptyObject(parsedData.asset) ||
-			parsedData.asset.version[0] !== '2'
+			parsedData.asset.version[0] !== "2"
 		) {
 			return;
 		}
@@ -117,7 +117,7 @@ class ModelLoaderGLTF {
 	parseJSON(view): any {
 		let length = view.getUint32(12, true);
 		if (view.getUint32(16, true) !== 0x4E4F534A) { // type === 'JSON'
-			throw 'Invalid JSON data';
+			throw "Invalid JSON data";
 		}
 
 		let data = new Uint8Array(view.buffer, 20, length);
@@ -139,7 +139,7 @@ class ModelLoaderGLTF {
 			}
 
 			if (view.getUint32(24 + jsonLength, true) !== 0x004E4942) { // type === 'BIN'
-				throw 'Invalid binary data';
+				throw "Invalid binary data";
 			}
 
 			return view.buffer.slice(28 + jsonLength, 28 + jsonLength + length);
@@ -169,12 +169,12 @@ class ModelLoaderGLTF {
 			}
 
 			var uri = buffers[i].uri;
-			if (!new RegExp('^//|(?:[a-z]+:)', 'i').test(uri)) {
-				let source = this.descriptor.source.split('/');
+			if (!new RegExp("^//|(?:[a-z]+:)", "i").test(uri)) {
+				let source = this.descriptor.source.split("/");
 
 				source.pop();
 				source.push(buffers[i].uri);
-				uri = source.join('/');
+				uri = source.join("/");
 			}
 
 			loadingBuffers.push((async buffer => {
@@ -211,32 +211,32 @@ class ModelLoaderGLTF {
 			var itemCount;
 
 			switch (accessors[i].type) {
-				case 'VEC2':
+				case "VEC2":
 					itemCount = 2;
 
 					break;
 
-				case 'VEC3':
+				case "VEC3":
 					itemCount = 3;
 
 					break;
 
-				case 'VEC4':
+				case "VEC4":
 					itemCount = 4;
 
 					break;
 
-				case 'MAT2':
+				case "MAT2":
 					itemCount = 4;
 
 					break;
 
-				case 'MAT3':
+				case "MAT3":
 					itemCount = 9;
 
 					break;
 
-				case 'MAT4':
+				case "MAT4":
 					itemCount = 16;
 
 					break;
@@ -278,12 +278,12 @@ class ModelLoaderGLTF {
 			if (images[i].uri) {
 				uri = images[i].uri;
 
-				if (!new RegExp('^//|(?:[a-z]+:)', 'i').test(uri)) {
-					let source = this.descriptor.source.split('/');
+				if (!new RegExp("^//|(?:[a-z]+:)", "i").test(uri)) {
+					let source = this.descriptor.source.split("/");
 
 					source.pop();
 					source.push(uri);
-					uri = source.join('/');
+					uri = source.join("/");
 				}
 			} else if (!isNaN(parseInt(images[i].bufferView)) && images[i].mimeType) {
 				let blob = new Blob([this.bufferViews[images[i].bufferView]], { type: images[i].mimeType });
@@ -293,7 +293,7 @@ class ModelLoaderGLTF {
 
 			if (uri) {
 				this.images.push({
-					locked: new RegExp('^//|(?:[a-z]+:)', 'i').test(uri),
+					locked: new RegExp("^//|(?:[a-z]+:)", "i").test(uri),
 					uri: uri,
 				});
 			}
@@ -309,41 +309,41 @@ class ModelLoaderGLTF {
 
 			if (!isNaN(parseInt(samplers[i].wrapS))) {
 				if (samplers[i].wrapS === 33071) {
-					sampler.wrapS = 'clamp';
+					sampler.wrapS = "clamp";
 				} else if (samplers[i].wrapS === 33648) {
-					sampler.wrapS = 'mirror';
+					sampler.wrapS = "mirror";
 				}
 			}
 
 			if (!isNaN(parseInt(samplers[i].wrapT))) {
 				if (samplers[i].wrapT === 33071) {
-					sampler.wrapT = 'clamp';
+					sampler.wrapT = "clamp";
 				} else if (samplers[i].wrapT === 33648) {
-					sampler.wrapT = 'mirror';
+					sampler.wrapT = "mirror";
 				}
 			}
 
 			if (!isNaN(parseInt(samplers[i].magFilter))) {
 				if (samplers[i].magFilter === 9729) {
-					sampler.magFilter = 'linear';
+					sampler.magFilter = "linear";
 				} else if (samplers[i].magFilter === 9728) {
-					sampler.magFilter = 'nearest';
+					sampler.magFilter = "nearest";
 				}
 			}
 
 			if (!isNaN(parseInt(samplers[i].minFilter))) {
 				if (samplers[i].minFilter === 9729) {
-					sampler.minFilter = 'linear';
+					sampler.minFilter = "linear";
 				} else if (samplers[i].minFilter === 9728) {
-					sampler.minFilter = 'nearest';
+					sampler.minFilter = "nearest";
 				} else if (samplers[i].minFilter === 9984) {
-					sampler.minFilter = 'nearestMipmapNearest';
+					sampler.minFilter = "nearestMipmapNearest";
 				} else if (samplers[i].minFilter === 9985) {
-					sampler.minFilter = 'linearMipmapNearest';
+					sampler.minFilter = "linearMipmapNearest";
 				} else if (samplers[i].minFilter === 9986) {
-					sampler.minFilter = 'nearestMipmapLinear';
+					sampler.minFilter = "nearestMipmapLinear";
 				} else if (samplers[i].minFilter === 9987) {
-					sampler.minFilter = 'linearMipmapLinear';
+					sampler.minFilter = "linearMipmapLinear";
 				}
 			}
 
@@ -391,9 +391,9 @@ class ModelLoaderGLTF {
 			if (textureData) {
 				let upperCaseName = name.toUpperCase();
 
-				material.samplers.push(new Sampler(name + '0', textures[textureData.index]));
+				material.samplers.push(new Sampler(name + "0", textures[textureData.index]));
 
-				material.definitions.addDefinition(upperCaseName + '_TEXTURE');
+				material.definitions.addDefinition(upperCaseName + "_TEXTURE");
 
 				if (textureData.extensions?.KHR_texture_transform) {
 					let transform = textureData.extensions.KHR_texture_transform;
@@ -427,9 +427,9 @@ class ModelLoaderGLTF {
 						mat3.identity(tmp);
 					}
 
-					material.definitions.addDefinition(upperCaseName + '_UV_TRANSFORM');
+					material.definitions.addDefinition(upperCaseName + "_UV_TRANSFORM");
 
-					material.uniforms[name + 'UVTransform'] = new UniformMat3(uvMatrix);
+					material.uniforms[name + "UVTransform"] = new UniformMat3(uvMatrix);
 				}
 			}
 		}
@@ -460,8 +460,8 @@ class ModelLoaderGLTF {
 					roughness = roughnessFactor;
 				}
 
-				setSampler(material, mr.baseColorTexture, 'diffuse');
-				setSampler(material, mr.metallicRoughnessTexture, 'metallicRoughness');
+				setSampler(material, mr.baseColorTexture, "diffuse");
+				setSampler(material, mr.metallicRoughnessTexture, "metallicRoughness");
 			}
 
 			material.uniforms.diffuse = new UniformColor(diffuse);
@@ -471,24 +471,32 @@ class ModelLoaderGLTF {
 			const eF = materials[i].emissiveFactor;
 			if (eF && eF.length > 2) {
 				material.uniforms.emissive = new UniformColor(new Color(eF[0], eF[1], eF[2]));
-				material.definitions.addDefinition('EMISSIVE');
+				material.definitions.addDefinition("EMISSIVE");
 			}
 
-			setSampler(material, materials[i].normalTexture, 'normal');
-			setSampler(material, materials[i].occlusionTexture, 'occlusion');
-			setSampler(material, materials[i].emissiveTexture, 'emissive');
+			if (materials[i].normalTexture) {
+				setSampler(material, materials[i].normalTexture, "normal");
+				material.uniforms.normalScale = new UniformFloat(materials[i].normalTexture.scale ?? 1.0);
+			}
+
+			if (materials[i].occlusionTexture) {
+				setSampler(material, materials[i].occlusionTexture, "occlusion");
+				material.uniforms.occlusionStrength = new UniformFloat(materials[i].occlusionTexture.strength ?? 1.0);
+			}
+
+			setSampler(material, materials[i].emissiveTexture, "emissive");
 
 			if (!materials[i].alphaMode) {
-				if (diffuse.a < 1.0) {	// Legacy compatibility
-					materials[i].alphaMode = 'BLEND';
+				if (diffuse.a < 1.0) { // Legacy compatibility
+					materials[i].alphaMode = "BLEND";
 				} else {
-					materials[i].alphaMode = 'OPAQUE';
+					materials[i].alphaMode = "OPAQUE";
 				}
 			}
 
-			if (materials[i].alphaMode === 'BLEND') {
+			if (materials[i].alphaMode === "BLEND") {
 				material.setTransparency(TransparencyType.Transparent);
-			} else if (materials[i].alphaMode === 'MASK') {
+			} else if (materials[i].alphaMode === "MASK") {
 				let cutoff = 0.5;
 
 				const alphaCutoff = parseFloat(materials[i].alphaCutoff);
@@ -518,9 +526,9 @@ class ModelLoaderGLTF {
 			let mesh = new Mesh();
 
 			for (let j = 0, m = meshes[i].primitives.length; j < m; j++) {
-				var material;
+				let material: Material;
 				if (!isNaN(parseInt(meshes[i].primitives[j].material))) {
-					material = this.materials[meshes[i].primitives[j].material];
+					material = this.materials[meshes[i].primitives[j].material].instantiate();
 				} else {
 					material = new Material(
 						null,
@@ -566,18 +574,22 @@ class ModelLoaderGLTF {
 			const colors = this.accessors[primitive.attributes.COLOR_0];
 			const pointCount = submesh.positions.length / 3;
 
-			if (colors.length / pointCount === 4) {
-				submesh.colors = colors;
+			function clamp(value: number): number {
+				return Math.min(Math.max(value, 0), 1);
+			}
 
-				material.definitions.addDefinition('VERTEX_COLORS');
+			if (colors.length / pointCount === 4) {
+				submesh.colors = colors.map((c: number) => clamp(c));
+
+				material.definitions.addDefinition("VERTEX_COLORS");
 			} else if (colors.length / pointCount === 3) {
 				submesh.colors = [];
 
 				for (let i = 0; i < colors.length; i += 3) {
-					submesh.colors.push(colors[i], colors[i + 1], colors[i + 2], 1.0);
+					submesh.colors.push(clamp(colors[i]), clamp(colors[i + 1]), clamp(colors[i + 2]), 1.0);
 				}
 
-				material.definitions.addDefinition('VERTEX_COLORS');
+				material.definitions.addDefinition("VERTEX_COLORS");
 			}
 		}
 
@@ -589,12 +601,12 @@ class ModelLoaderGLTF {
 				},
 			);
 
-			material.definitions.addDefinition('VERTEX_TANGENTS');
+			material.definitions.addDefinition("VERTEX_TANGENTS");
 		} else if (submesh.texCoords2D.length && submesh.normals.length) {
 			try {
 				submesh.unweld();
 				submesh.tangents4D = generateTangents(submesh.positions, submesh.normals, submesh.texCoords2D[0]);
-				material.definitions.addDefinition('VERTEX_TANGENTS');
+				material.definitions.addDefinition("VERTEX_TANGENTS");
 			} catch (e) {}
 		}
 
@@ -689,7 +701,7 @@ class ModelLoaderGLTF {
 		let light;
 
 		switch (lightInfo.type) {
-			case 'directional':
+			case "directional":
 				light = new DirectionalLight();
 				const rotation = quat.fromMat4(quat.create(), transform);
 
@@ -697,7 +709,7 @@ class ModelLoaderGLTF {
 
 				break;
 
-			case 'point':	// TODO
+			case "point":	// TODO
 
 			default:
 				return;

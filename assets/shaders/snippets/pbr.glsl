@@ -74,6 +74,7 @@ vec2 metallicRoughnessValue() {
 // Normal
 #ifdef NORMAL_TEXTURE
 uniform sampler2D normal0;
+uniform float normalScale;
 
 #ifdef NORMAL_UV_TRANSFORM
 uniform mat3 normalUVTransform;
@@ -93,6 +94,7 @@ vec2 normalUV() {
 // Occlusion
 #ifdef OCCLUSION_TEXTURE
 uniform sampler2D occlusion0;
+uniform float occlusionStrength;
 
 #ifdef OCCLUSION_UV_TRANSFORM
 uniform mat3 occlusionUVTransform;
@@ -113,6 +115,7 @@ float occlusionValue() {
 	float occlusion = 1.0;
 #ifdef OCCLUSION_TEXTURE
 	occlusion *= texture(occlusion0, occlusionUV()).r;
+	occlusion = mix(1.0, occlusion, occlusionStrength);
 #endif
 	return occlusion;
 }
