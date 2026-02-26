@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { copyFile, readFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, relative } from "node:path";
 import { argv, exit } from "node:process";
 import { fileURLToPath } from "node:url";
@@ -13,12 +13,12 @@ let wasmPlugin = {
 	name: "wasm",
 	setup(build) {
 		// Resolve ".wasm" files to a path with a namespace
-		build.onResolve({ filter: /\.wasm$/ }, (args) => {
+		build.onResolve({ filter: /\.wasm$/ }, args => {
 			let relativePath = relative(
 				__dirname,
-				isAbsolute(args.path)
-					? args.path
-					: join(args.resolveDir, args.path),
+				isAbsolute(args.path) ?
+					args.path :
+					join(args.resolveDir, args.path),
 			);
 
 			// If this is the import inside the stub module, import the
@@ -56,7 +56,7 @@ let wasmPlugin = {
 				filter: /.*/,
 				namespace: "wasm-stub",
 			},
-			async (args) => ({
+			async args => ({
 				contents: `import wasm from ${JSON.stringify(args.path)}
         export default (imports) =>
           WebAssembly.instantiate(wasm, imports).then(
@@ -73,7 +73,7 @@ let wasmPlugin = {
 				filter: /.*/,
 				namespace: "wasm-binary",
 			},
-			async (args) => ({
+			async args => ({
 				contents: await readFile(args.path),
 				loader: "binary",
 			}),
@@ -101,6 +101,13 @@ for (const v of ["debug", "min"]) {
 	})
 	.then(() => {
 		console.log(`Build written to ${OUTPUT_PATH}`);
+
+		return copyFile(
+			OUTPUT_PATH,
+			OUTPUT_PATH.replace(`-${pkg.version}`, "-latest"),
+		).then(() => {
+			console.log(`Latest build written to ${OUTPUT_PATH.replace(`-${pkg.version}`, "-latest")}`);
+		});
 	})
 	.catch(() => exit(1));
 }
