@@ -5,12 +5,12 @@
   "main": "node build.mjs",
   "exports": {
     ".": {
-      "default": "./builds/frak.js",
-      "types": "./builds/frak.d.ts"
+      "types": "./builds/frak.d.ts",
+      "default": "./builds/frak.js"
     },
     "./debug": {
-      "default": "./builds/frak.debug.js",
-      "types": "./builds/frak.d.ts"
+      "types": "./builds/frak.d.ts",
+      "default": "./builds/frak.debug.js"
     }
   },
   "directories": {
@@ -43,14 +43,14 @@
   },
   "homepage": "https://github.com/3dtech/frak#readme",
   "devDependencies": {
-    "@stylistic/eslint-plugin": "^1.7.0",
-    "@types/webxr": "^0.5.10",
-    "@typescript-eslint/parser": "^7.3.1",
+    "@stylistic/eslint-plugin": "^5.9.0",
+    "@types/webxr": "^0.5.24",
+    "@typescript-eslint/parser": "^8.56.1",
     "dts-bundle-generator": "^9.5.1",
-    "esbuild": "^0.18.17",
-    "eslint": "^8.57.0",
-    "eslint-plugin-jsdoc": "^48.2.1",
-    "typescript": "^5.4.3",
-    "typescript-eslint": "^7.3.1"
+    "esbuild": "^0.27.3",
+    "eslint": "^9.39.3",
+    "eslint-plugin-jsdoc": "^62.7.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.1"
   }
 }
