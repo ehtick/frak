@@ -1,8 +1,13 @@
 {
   "name": "frak",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "FRAK engine is a JavaScript library/API for creating interactive 3D applications using WebGL. The purpose of the library is to provide a framework for simplifying the creation of complex interactive 3D applications.",
-  "main": "node build.mjs",
+  "main": "node build.mjs --module",
+  "files": [
+    "builds/frak.js",
+    "builds/frak.debug.js",
+    "builds/frak.d.ts"
+  ],
   "exports": {
     ".": {
       "types": "./builds/frak.d.ts",
@@ -18,12 +23,9 @@
     "test": "tests"
   },
   "scripts": {
-    "build": "node build.mjs",
-    "build-module": "node build.mjs --module",
-    "build-debug": "node build.mjs --debug",
-    "build-debug-module": "node build.mjs --debug --module",
+    "build": "node build.mjs --module",
+    "build-browser": "node build.mjs",
     "build-shaders": "node build-shaders.mjs",
-    "build-types": "dts-bundle-generator --project tsconfig.json -o builds/frak.d.ts src/entry.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -46,11 +48,12 @@
     "@stylistic/eslint-plugin": "^5.9.0",
     "@types/webxr": "^0.5.24",
     "@typescript-eslint/parser": "^8.56.1",
-    "dts-bundle-generator": "^9.5.1",
-    "esbuild": "^0.27.3",
+    "esbuild": "^0.28.2",
     "eslint": "^9.39.3",
     "eslint-plugin-jsdoc": "^62.7.1",
+    "picocolors": "^1.1.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.56.1"
+    "typescript-eslint": "^8.56.1",
+    "unplugin-dts-bundle-generator": "^3.4.3"
   }
 }

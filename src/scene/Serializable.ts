@@ -11,6 +11,7 @@ var nextSerializableID=1;
 	If they derive from Serializable class, a copy will be made
 	from the original with only required fields. */
 class Serializable {
+	_visited_: boolean | undefined;
 	serializable: boolean;
 	id: number;
 

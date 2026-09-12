@@ -110,8 +110,8 @@ class XRCamera extends CameraComponent {
 			return false; // Needed when rendering only one eye of a stereo view to not spam console with errors
 		}
 
-		this.camera.blockValues.projection = view.projectionMatrix;
-		this.camera.blockValues.view = view.transform.inverse.matrix;
+		this.camera.blockValues.projection = view.projectionMatrix as BufferSource;
+		this.camera.blockValues.view = view.transform.inverse.matrix as BufferSource;
 		this.camera.target.frameBuffer = layer.framebuffer;
 		this.camera.target.set(viewport.x, viewport.y, viewport.width, viewport.height);
 		this.camera.target.resetViewport();

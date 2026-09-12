@@ -2,6 +2,7 @@ import { copyFile, readFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, relative } from "node:path";
 import { argv, exit } from "node:process";
 import { fileURLToPath } from "node:url";
+import dts from "unplugin-dts-bundle-generator/esbuild";
 import pkg from "./package.json" with { type: "json" };
 
 import { build } from "esbuild";
@@ -85,6 +86,16 @@ const module = argv.includes("--module");
 for (const v of ["debug", "min"]) {
 	const moduleString = v === "min" ? "" : ".debug";
 	const OUTPUT_PATH = `builds/frak${module ? moduleString : `-${pkg.version}.${v}`}.js`;
+	const plugins = [wasmPlugin];
+	if (module && v === "min") { // Output types only once
+		plugins.push(dts({
+			outfile: OUTPUT_PATH.replace(/\.js$/, ".d.ts"),
+			output: {
+				exportReferencedTypes: false,
+				noBanner: true,
+			},
+		}));
+	}
 
 	build({
 		entryPoints: ["src/entry.ts"],
@@ -92,7 +103,7 @@ for (const v of ["debug", "min"]) {
 		format: module ? "esm" : "iife",
 		minify: v === "min",
 		outfile: OUTPUT_PATH,
-		plugins: [wasmPlugin],
+		plugins,
 		loader: {
 			".glsl": "text",
 			".frag": "text",
