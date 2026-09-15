@@ -7,6 +7,7 @@ import ModelLoaderGLTF from 'loading/ModelLoaderGLTF';
 import ModelLoaderJSON from 'loading/ModelLoaderJSON';
 import ModelLoader from 'loading/ModelLoader';
 import ThreadedDataParser from 'loading/ThreadedDataParser';
+import type AssetServer from 'loading/AssetServer';
 
 type Loader = (manager: ModelsManager, descriptor: ModelDescriptor, resource: Node, data: ArrayBuffer) => Promise<void>;
 
@@ -14,13 +15,20 @@ type Loader = (manager: ModelsManager, descriptor: ModelDescriptor, resource: No
 class ModelsManager extends Manager<ModelDescriptor, Node> {
 	private readonly loaders: Map<string, Loader> = new Map();
 
+	shadersManager: ShadersManager;
+	texturesManager: TexturesManager;
+
 	constructor(
 		context: RenderingContext,
 		assetsPath: string,
-		public shadersManager: ShadersManager = new ShadersManager(context),
-		public texturesManager: TexturesManager = new TexturesManager(context),
+		shadersManager?: ShadersManager,
+		texturesManager?: TexturesManager,
+		assetServer?: AssetServer,
 	) {
-		super(assetsPath);
+		super(assetsPath, assetServer);
+
+		this.shadersManager = shadersManager ?? new ShadersManager(context, undefined, this.assetServer);
+		this.texturesManager = texturesManager ?? new TexturesManager(context, undefined, this.assetServer);
 
 		const loadGLTF = async (
 			manager: ModelsManager,
@@ -28,7 +36,12 @@ class ModelsManager extends Manager<ModelDescriptor, Node> {
 			resource: Node,
 			data: ArrayBuffer,
 		) => {
-			const loader = new ModelLoaderGLTF(descriptor, manager.shadersManager, manager.texturesManager);
+			const loader = new ModelLoaderGLTF(
+				descriptor,
+				manager.shadersManager,
+				manager.texturesManager,
+				manager.assetServer,
+			);
 
 			await loader.load(resource, data);
 		};
@@ -135,13 +148,8 @@ class ModelsManager extends Manager<ModelDescriptor, Node> {
 			const format = modelDescriptor.getFormat();
 
 			if (this.loaders.has(format)) {
-				let data = descriptor.data;
-				if (!data) {
-					const response = await fetch(descriptor.getFullPath());
-
-					data = await response.arrayBuffer();
-				}
-
+				const asset = await this.assetServer.load(descriptor.getFullPath());
+				const data = await asset.arrayBuffer();
 				const loader = this.loaders.get(format);
 
 				await loader(this, descriptor, resource, data);

@@ -1,9 +1,11 @@
 import Descriptor from '../scene/descriptors/Descriptor';
+import AssetServer from 'loading/AssetServer';
 
 /** Generic manager class extended by all other manager classes
 	except for AssetsManager that groups together instances of other managers. */
 class Manager<T extends Descriptor, R> {
 	path: string;
+	assetServer: AssetServer;
 	queue: any;
 	loading: any;
 	cache: any;
@@ -23,9 +25,12 @@ class Manager<T extends Descriptor, R> {
 	/**
 	 * Constructor
 	 * @param assetsPath Default search path for any assets requested
+	 * @param assetServer Server used to read asset data
 	 */
-	constructor(assetsPath?) {
+	constructor(assetsPath?, assetServer = new AssetServer()) {
 		var scope = this;
+
+		this.assetServer = assetServer;
 
 		// Ensure valid path for concatenation
 		this.path = '';

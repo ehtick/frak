@@ -119,6 +119,8 @@ export { LineRenderer_default as LineRenderer, LineRenderer_exports };
 import SubmeshRenderer_default, * as SubmeshRenderer_exports from 'rendering/renderers/SubmeshRenderer';
 export { SubmeshRenderer_default as SubmeshRenderer, SubmeshRenderer_exports };
 
+import AssetServer_default, * as AssetServer_exports from 'loading/AssetServer';
+export { AssetServer_default as AssetServer, AssetServer_exports };
 import DataParserTypes_default, * as DataParserTypes_exports from 'loading/DataParserTypes';
 export { DataParserTypes_default as DataParserTypes, DataParserTypes_exports };
 import DataParserNode_default, * as DataParserNode_exports from 'loading/DataParserNode';

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/member-ordering */
 import TextureDescriptor from "scene/descriptors/TextureDescriptor";
 import Sampler from "rendering/shaders/Sampler";
 import UniformMat3 from "rendering/shaders/UniformMat3";
@@ -19,6 +18,19 @@ import type { TextureOptions } from "../rendering/materials/BaseTexture";
 import type TexturesManager from "./TexturesManager";
 import type ShadersManager from "./ShadersManager";
 import type ModelDescriptor from "../scene/descriptors/ModelDescriptor";
+import AssetServer from "./AssetServer";
+
+/** One glTF image, either at a uri or as data waiting to be published */
+interface GLTFImage {
+	data?: ArrayBufferView<ArrayBuffer>;
+	locked: boolean;
+	mimeType?: string;
+	name?: string;
+	uri?: string;
+}
+
+/** Matches URIs that already resolve on their own, so they must not be prefixed with a directory */
+const absoluteUri = /^\/\/|(?:[a-z]+:)/i;
 
 function defaultSampler(): TextureOptions {
 	return {
@@ -42,16 +54,21 @@ class ModelLoaderGLTF {
 	buffers: any;
 	bufferViews: any;
 	accessors: any;
-	images: any;
+	images: (GLTFImage | undefined)[];
 	samplers: any;
 	textures: any;
 	materials: any;
 	meshes: any;
+	assetServer: AssetServer;
 
-	constructor(descriptor, shadersManager, texturesManager) {
+	/** Paths of the embedded images this loader published, see releaseImages */
+	publishedImages: string[] = [];
+
+	constructor(descriptor, shadersManager, texturesManager, assetServer: AssetServer = new AssetServer()) {
 		this.descriptor = descriptor;
 		this.shadersManager = shadersManager;
 		this.texturesManager = texturesManager;
+		this.assetServer = assetServer;
 		this.nodesByID = {};
 		this.submeshesByID = {};
 		this.submeshes = [];
@@ -75,6 +92,30 @@ class ModelLoaderGLTF {
 
 	/** Loads parsed data to scene hierarchy at given node */
 	async load(node, data: ArrayBuffer) {
+		try {
+			await this.loadModel(node, data);
+		} catch (e) {
+			// Nothing is going to take over the embedded images of a model that failed to load
+			this.releaseImages();
+
+			throw e;
+		}
+	}
+
+	/** Drops the image data this loader published. Images that were handed to the textures
+		manager are released by it once they have been decoded. */
+	releaseImages() {
+		for (const path of this.publishedImages) {
+			this.assetServer.unpublish(path);
+		}
+
+		this.publishedImages = [];
+	}
+
+	/**
+	 *
+	 */
+	protected async loadModel(node, data: ArrayBuffer) {
 		await init();
 		let parsedData;
 		let view = new DataView(data);
@@ -152,7 +193,7 @@ class ModelLoaderGLTF {
 	async loadBuffers(buffers) {
 		const loadingBuffers = [];
 		for (let i = 0, l = buffers.length; i < l; i++) {
-			var byteLength = buffers[i].byteLength;
+			let byteLength = buffers[i].byteLength;
 			let buffer = {
 				data: undefined,
 				length: byteLength,
@@ -168,8 +209,8 @@ class ModelLoaderGLTF {
 				continue;
 			}
 
-			var uri = buffers[i].uri;
-			if (!new RegExp("^//|(?:[a-z]+:)", "i").test(uri)) {
+			let uri = buffers[i].uri;
+			if (!absoluteUri.test(uri)) {
 				let source = this.descriptor.source.split("/");
 
 				source.pop();
@@ -177,13 +218,13 @@ class ModelLoaderGLTF {
 				uri = source.join("/");
 			}
 
-			loadingBuffers.push((async buffer => {
-				const response = await fetch(uri);
-				const data = await response.arrayBuffer();
-				if (data.byteLength === byteLength) {
-					buffer.data = data;
+			loadingBuffers.push((async (target, path, length) => {
+				const asset = await this.assetServer.load(path);
+				const data = await asset.arrayBuffer();
+				if (data.byteLength === length) {
+					target.data = data;
 				}
-			})(buffer));
+			})(buffer, uri, byteLength));
 		}
 
 		await Promise.allSettled(loadingBuffers);
@@ -274,30 +315,51 @@ class ModelLoaderGLTF {
 	 */
 	loadImages(images): any {
 		for (let i = 0, l = images.length; i < l; i++) {
-			var uri;
 			if (images[i].uri) {
-				uri = images[i].uri;
+				let uri = images[i].uri;
 
-				if (!new RegExp("^//|(?:[a-z]+:)", "i").test(uri)) {
+				if (!absoluteUri.test(uri)) {
 					let source = this.descriptor.source.split("/");
 
 					source.pop();
 					source.push(uri);
 					uri = source.join("/");
 				}
-			} else if (!isNaN(parseInt(images[i].bufferView)) && images[i].mimeType) {
-				let blob = new Blob([this.bufferViews[images[i].bufferView]], { type: images[i].mimeType });
 
-				uri = URL.createObjectURL(blob);
-			}
-
-			if (uri) {
 				this.images.push({
-					locked: new RegExp("^//|(?:[a-z]+:)", "i").test(uri),
+					locked: absoluteUri.test(uri),
 					uri: uri,
 				});
+			} else if (!isNaN(parseInt(images[i].bufferView)) && images[i].mimeType) {
+				// The data is already here, so it is published to the asset server on first use
+				// rather than copied through a Blob URL
+				this.images.push({
+					data: this.bufferViews[images[i].bufferView],
+					locked: true,
+					mimeType: images[i].mimeType,
+					name: images[i].name,
+				});
+			} else {
+				// Keep the indices aligned with the glTF image array
+				this.images.push(undefined);
 			}
 		}
+	}
+
+	/** Resolves a glTF image to a path the asset server can read. Data that is already loaded is
+		published on first use, so an image shared by several textures is published only once.
+		@param index Index into the glTF image array
+		@return Image entry with a readable uri, or undefined if the glTF image cannot be used */
+	imageSource(index): GLTFImage | undefined {
+		const image = this.images[index];
+
+		if (image && !image.uri) {
+			image.uri = this.assetServer.publish(image.data, image.mimeType, image.name ?? `image${index}`);
+
+			this.publishedImages.push(image.uri);
+		}
+
+		return image;
 	}
 
 	/**
@@ -360,7 +422,11 @@ class ModelLoaderGLTF {
 				continue;
 			}
 
-			let descriptorImage = this.images[textures[i].source];
+			let descriptorImage = this.imageSource(textures[i].source);
+			if (!descriptorImage) {
+				continue;
+			}
+
 			let descriptor = new TextureDescriptor(descriptorImage.uri);
 
 			descriptor.locked = descriptorImage.locked;

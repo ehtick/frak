@@ -88,6 +88,8 @@ for (const v of ["debug", "min"]) {
 	const OUTPUT_PATH = `builds/frak${module ? moduleString : `-${pkg.version}.${v}`}.js`;
 	const plugins = [wasmPlugin];
 	if (module && v === "min") { // Output types only once
+		console.log(`Generating type definitions for ${OUTPUT_PATH.replace(/\.js$/, ".d.ts")}`);
+
 		plugins.push(dts({
 			outfile: OUTPUT_PATH.replace(/\.js$/, ".d.ts"),
 			output: {
@@ -112,6 +114,10 @@ for (const v of ["debug", "min"]) {
 	})
 	.then(() => {
 		console.log(`Build written to ${OUTPUT_PATH}`);
+
+		if (module) {
+			return new Promise(() => {});
+		}
 
 		return copyFile(
 			OUTPUT_PATH,

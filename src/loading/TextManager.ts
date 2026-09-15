@@ -1,5 +1,6 @@
 import Manager from 'loading/Manager';
 import TextDescriptor from 'scene/descriptors/TextDescriptor';
+import type AssetServer from 'loading/AssetServer';
 
 type TextResource = {
 	data: string | boolean;
@@ -20,9 +21,10 @@ class TextManager extends Manager<TextDescriptor, TextResource> {
 	/**
 	 * Constructor
 	 * @param assetsPath Default search path for any assets requested
+	 * @param assetServer Server used to read asset data
 	 */
-	constructor(assetsPath?) {
-		super(assetsPath);
+	constructor(assetsPath?, assetServer?: AssetServer) {
+		super(assetsPath, assetServer);
 	}
 
 	/** Adds new text descriptor to loading queue. This is a helper
@@ -41,8 +43,8 @@ class TextManager extends Manager<TextDescriptor, TextResource> {
 	async loadResource(textDescriptor: TextDescriptor, resource: TextResource) {
 		const descriptor = this.descriptorCallback(textDescriptor);
 		try {
-			const response = await fetch(descriptor.getFullPath());
-			resource.data = await response.text();
+			const asset = await this.assetServer.load(descriptor.getFullPath());
+			resource.data = await asset.text();
 
 			return [descriptor, resource] as [TextDescriptor, TextResource];
 		} catch (e) {

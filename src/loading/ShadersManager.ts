@@ -3,6 +3,7 @@ import TextManager from 'loading/TextManager';
 import ShaderDescriptor from 'scene/descriptors/ShaderDescriptor';
 import Shader from 'rendering/shaders/Shader';
 import BuiltInShaders from 'rendering/shaders/BuiltInShaders';
+import type AssetServer from 'loading/AssetServer';
 
 /**
  * Used by AssetsManager to load shaders.
@@ -18,9 +19,10 @@ class ShadersManager extends Manager<ShaderDescriptor, Shader> {
 	 * Constructor
 	 * @param renderingContext Instance of RenderingContext
 	 * @param assetsPath Default search path for any assets requested
+	 * @param assetServer Server used to read asset data
 	 */
-	constructor(context, assetsPath?) {
-		super(assetsPath);
+	constructor(context, assetsPath?, assetServer?: AssetServer) {
+		super(assetsPath, assetServer);
 		this.sourceCallback = function(source) {
 			return source;
 		};
@@ -33,7 +35,7 @@ class ShadersManager extends Manager<ShaderDescriptor, Shader> {
 		}
 		this.setAliases();
 
-		this.textManager = new TextManager();
+		this.textManager = new TextManager(undefined, this.assetServer);
 	}
 
 	setAliases(): any {

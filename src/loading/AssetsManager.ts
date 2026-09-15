@@ -1,8 +1,9 @@
-import ShadersManager from 'loading/ShadersManager';
-import TexturesManager from 'loading/TexturesManager';
-import ModelsManager from 'loading/ModelsManager';
-import TextManager from 'loading/TextManager';
-import Shader from "../rendering/shaders/Shader";
+import ShadersManager from "loading/ShadersManager";
+import TexturesManager from "loading/TexturesManager";
+import ModelsManager from "loading/ModelsManager";
+import TextManager from "loading/TextManager";
+import type Shader from "../rendering/shaders/Shader";
+import AssetServer from "loading/AssetServer";
 
 /** General assets manager.
 	Example of usage:
@@ -22,6 +23,7 @@ assetsManager.load(function() {
 class AssetsManager {
 	managers: any;
 	assetsPath: any;
+	assetServer: AssetServer;
 	loadingCount: any;
 	loadedCallbacks: any;
 	shadersManager: ShadersManager;
@@ -35,34 +37,49 @@ class AssetsManager {
 	 * @param assetsPath Default search path for any assets requested
 	 */
 	constructor(renderingContext, assetsPath) {
-		this.managers=[];
+		this.managers = [];
 		this.assetsPath = assetsPath;
+		this.assetServer = new AssetServer();
 
-		var me=this;
-		this.loadingCount=0;
-		this.loadedCallbacks=[];
-		var addManager=function(manager) {
-			manager.onAddToQueue=function(descriptor) {
+		let me = this;
+
+		this.loadingCount = 0;
+		this.loadedCallbacks = [];
+		let addManager = function(manager) {
+			manager.onAddToQueue = function(descriptor) {
 				me.loadingCount++;
 			};
-			manager.onLoaded=function(descriptor) {
+
+			manager.onLoaded = function(descriptor) {
 				me.loadingCount--;
-				if(me.loadingCount<=0) {
-					var callbacks=me.loadedCallbacks.slice(0);
-					me.loadedCallbacks=[];
-					for(var i=0; i<callbacks.length; i++) {
-						var c=callbacks[i];
+
+				if (me.loadingCount <= 0) {
+					let callbacks = me.loadedCallbacks.slice(0);
+
+					me.loadedCallbacks = [];
+
+					for (let i = 0; i < callbacks.length; i++) {
+						let c = callbacks[i];
+
 						c();
 					}
 				}
 			};
+
 			me.managers.push(manager);
 		};
 
-		addManager(this.shadersManager=new ShadersManager(renderingContext, this.assetsPath));
-		addManager(this.texturesManager=new TexturesManager(renderingContext, this.assetsPath));
-		addManager(this.modelsManager=new ModelsManager(renderingContext, this.assetsPath, this.shadersManager, this.texturesManager));
-		addManager(this.textManager=new TextManager(this.assetsPath));
+		addManager(this.shadersManager = new ShadersManager(renderingContext, this.assetsPath, this.assetServer));
+		addManager(this.texturesManager = new TexturesManager(renderingContext, this.assetsPath, this.assetServer));
+		addManager(this.modelsManager = new ModelsManager(
+			renderingContext,
+			this.assetsPath,
+			this.shadersManager,
+			this.texturesManager,
+			this.assetServer,
+		));
+
+		addManager(this.textManager = new TextManager(this.assetsPath, this.assetServer));
 	}
 
 	/** Adds a new texture to textures loading queue
@@ -102,10 +119,10 @@ class AssetsManager {
 
 	/** Returns true if the asstesmanager has anything in its loading queue. */
 	hasItemsInQueue(): any {
-		for(var m in this.managers) {
-			if (this.managers[m].getWaitingItems()>0)
-				return true;
+		for (let m in this.managers) {
+			if (this.managers[m].getWaitingItems() > 0) { return true; }
 		}
+
 		return false;
 	}
 
@@ -118,36 +135,38 @@ class AssetsManager {
 		@param callback Callback that is called when all added sources have been loaded
 		@param progressCallback Callback that is called when either all shaders, all textures or all models have been loaded */
 	load(callback?, progressCallback?): any {
-		var me = this;
+		let me = this;
 
-		if(callback) {
+		if (callback) {
 			this.loadedCallbacks.push(callback);
 		}
 
 		if (!this.hasItemsInQueue()) {
-			var callbacks = this.loadedCallbacks.slice(0);
+			let callbacks = this.loadedCallbacks.slice(0);
+
 			this.loadedCallbacks = [];
-			for(var j = 0; j < callbacks.length; j++) {
+
+			for (let j = 0; j < callbacks.length; j++) {
 				callbacks[j]();
 			}
+
 			return;
 		}
 
 		function onProgress() {
-			if (!progressCallback)
-				return;
-			var progress = 0.0;
-			for (var i=0; i < me.managers.length; i++){
-				if(me.managers[i]){
+			if (!progressCallback) { return; }
+
+			let progress = 0.0;
+			for (let i = 0; i < me.managers.length; i++) {
+				if (me.managers[i]) {
 					progress += me.managers[i].getProgress();
-				}
-				else
-					progress += 1.0;
+				} else { progress += 1.0; }
 			}
-			progressCallback(progress/me.managers.length);
+
+			progressCallback(progress / me.managers.length);
 		}
 
-		for(var m = 0; m < this.managers.length; m++) {
+		for (let m = 0; m < this.managers.length; m++) {
 			this.managers[m].load(function() {}, onProgress);
 		}
 	}

@@ -11,7 +11,6 @@ export default {
 			"ts-nocheck": "allow-with-description",
 		},
 	],
-	"@typescript-eslint/ban-types": "warn",
 	"@typescript-eslint/class-literal-property-style": "warn",
 	"@typescript-eslint/class-methods-use-this": [
 		"warn",
@@ -134,10 +133,11 @@ export default {
 	"@typescript-eslint/no-require-imports": "warn",
 	"@typescript-eslint/no-shadow": "warn",
 	"@typescript-eslint/no-this-alias": "warn",
-	"@typescript-eslint/no-unnecessary-boolean-literal-compare": "warn",
 
+	// "@typescript-eslint/no-unnecessary-boolean-literal-compare": "warn",
 	// '@typescript-eslint/no-unnecessary-condition': 'warn',
 	"@typescript-eslint/no-unnecessary-qualifier": "warn",
+	"@typescript-eslint/no-unnecessary-template-expression": "warn",
 	"@typescript-eslint/no-unnecessary-type-assertion": "warn",
 	"@typescript-eslint/no-unnecessary-type-arguments": "warn",
 	"@typescript-eslint/no-unnecessary-type-constraint": "warn",
@@ -153,7 +153,6 @@ export default {
 	],
 	"@typescript-eslint/no-use-before-define": "warn",
 	"@typescript-eslint/no-useless-constructor": "warn",
-	"@typescript-eslint/no-useless-template-literals": "warn",
 	"@typescript-eslint/no-var-requires": "warn",
 	"@typescript-eslint/non-nullable-type-assertion-style": "warn",
 
@@ -178,7 +177,8 @@ export default {
 	"@typescript-eslint/prefer-string-starts-ends-with": "warn",
 	"@typescript-eslint/promise-function-async": "warn",
 	"@typescript-eslint/require-array-sort-compare": "warn",
-	"@typescript-eslint/require-await": "warn",
+
+	// "@typescript-eslint/require-await": "warn",
 	"@typescript-eslint/restrict-plus-operands": "warn",
 	"@typescript-eslint/sort-type-constituents": "warn",
 
