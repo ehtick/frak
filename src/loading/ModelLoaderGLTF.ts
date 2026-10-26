@@ -594,7 +594,10 @@ class ModelLoaderGLTF {
 			for (let j = 0, m = meshes[i].primitives.length; j < m; j++) {
 				let material: Material;
 				if (!isNaN(parseInt(meshes[i].primitives[j].material))) {
-					material = this.materials[meshes[i].primitives[j].material].instantiate();
+					const original = this.materials[meshes[i].primitives[j].material];
+
+					material = original.instantiate();
+					material.name = original.name;
 				} else {
 					material = new Material(
 						null,
